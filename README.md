@@ -1,4 +1,4 @@
-# JDCompDSer
+# JDSer-DComp
 A Burp Extender plugin that will allow you to tamper with requests containing compressed, serialized java objects. Useful in case you want to pen-test a Java _thick_ (or _fat_) client application.
 
 This was based on Jon Murray's [JDSer-ngng](https://github.com/nccgroup/JDSer-ngng), which in turn was based on parts from [khai-tran](https://github.com/khai-tran/BurpJDSer) and [IOActives](https://github.com/IOActive/BurpJDSer-ng) extensions.  
