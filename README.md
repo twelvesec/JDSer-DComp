@@ -1,15 +1,16 @@
 # JDCompDSer
-A Burp Extender plugin that will allow you to tamper with requests containing compressed (in ZLIB), serialized java objects. Useful in case you want to pen-test a Java _thick_ (or _fat_) client application.
+A Burp Extender plugin that will allow you to tamper with requests containing compressed, serialized java objects. Useful in case you want to pen-test a Java _thick_ (or _fat_) client application.
 
 This was based on Jon Murray's JDSer-ngng, which in turn was based on parts from khai-tran and IOActives extension:
 * https://github.com/nccgroup/JDSer-ngng
-* https://github.com/IOActive/BurpJDSer-ng
-
+* https://github.com/IOActive/BurpJDSer-ng  
 Exerpts from this README are borrowed from their README as well! Thanks guys =]
 
 ## Features
-This extender will decompress and deserialize a request, let you modify it, and then reserialize and recompress it before sending it on. The deserialized Java objects are encoded in XML using the [XStream](http://xstream.codehaus.org/) library.  
+This extender will decompress and deserialize a request, let you modify it, and then reserialize and recompress it before sending it on. The deserialized Java objects are encoded in XML using the [XStream](http://xstream.codehaus.org/) library.
+
 It works well with Burp's _Proxy_, _History_, _Intruder_ and _Repeater_ tabs, while it only partially supports _Scanner_.  
+
 It also has the ability to use SQLMap: Copy and paste the output of the "send deserialized to intruder" into a file, and then "sqlmap.py -r --proxy "http://burp:port".
 
 ## Usage
@@ -17,7 +18,7 @@ It also has the ability to use SQLMap: Copy and paste the output of the "send de
 
 Few methods to locate the required jar files containing the classes we'll be deserializing:
 
-* In case of a .jnlp file use jnpdownloader
+* In case of a .jnlp file use [jnpdownloader](https://code.google.com/p/jnlpdownloader/)
 * Locating jars in browser cache
 * Looking for .jar in burp proxy history
 
