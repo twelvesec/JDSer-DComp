@@ -5,11 +5,15 @@ This was based on Jon Murray's [JDSer-ngng](https://github.com/nccgroup/JDSer-ng
 (Exerpts from this README are borrowed from their README as well, so thanks!)
 
 ## Features
-* This extender will decompress and deserialize a request, let you modify it, and then reserialize and recompress it before sending it on. 
-* The deserialized Java objects are encoded in XML using the [XStream](http://xstream.codehaus.org/) library. 
-* The compression format currently supported is **zlib**. 
-* It works well with Burp's _Proxy_, _History_, _Intruder_ and _Repeater_ tabs, while it only partially supports _Scanner_.
-* It also has the ability to use SQLMap: Copy and paste the output of the "send deserialized to intruder" into a file, and then "sqlmap.py -r --proxy "http://burp:port".
+This extender will decompress and deserialize a request, let you modify it, and then reserialize and recompress it before sending it on.  
+
+The deserialized Java objects are encoded in XML using the [XStream](http://xstream.codehaus.org/) library. 
+
+The compression format currently supported is **zlib**. 
+
+It works well with Burp's _Proxy_, _History_, _Intruder_ and _Repeater_ tools, while it only partially supports _Scanner_.
+
+It also has the ability to use SQLMap: Copy and paste the output of the "send deserialized to intruder" into a file, and then "sqlmap.py -r --proxy "http://burp:port".
 
 ## Usage
 1) Find and download client *.jar files
