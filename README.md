@@ -2,7 +2,7 @@
 A Burp Extender plugin that will allow you to tamper with requests containing compressed, serialized java objects. Useful in case you want to pen-test a Java _thick_ (or _fat_) client application.
 
 This was based on Jon Murray's [JDSer-ngng](https://github.com/nccgroup/JDSer-ngng), which in turn was based on parts from [khai-tran](https://github.com/khai-tran/BurpJDSer) and [IOActives](https://github.com/IOActive/BurpJDSer-ng) extensions.  
-(Exerpts from this README are borrowed from their README as well, so thanks!)
+(Excerpts from this README are borrowed from their README as well, so thanks!)
 
 ## Features
 This extender will decompress and deserialize a request, let you modify it, and then reserialize and recompress it before sending it on.  
