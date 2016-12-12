@@ -40,10 +40,11 @@ JARs reload when the extender is loaded. Everything is written to stdout (so run
 
 ## Todo
 This plugin is at a somewhat primitive state, and there are many things left to be done, like:
-- Supporting more compression algorithms (maybe with auto-detection)
-- Better support for Burp’s Scanner 
-- Better exception handling
-- Support for applications that utilize XML signing  
+* Supporting more compression algorithms (maybe with auto-detection)
+* Better support for Burp’s Scanner 
+* Better exception handling
+* Support for applications that utilize XML signing  
+
 Stay tuned!
 
 Cheers.
