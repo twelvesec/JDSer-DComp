@@ -38,7 +38,7 @@ Please note that if you mess up the XML schema or edit an object in a funny way,
 
 JARs reload when the extender is loaded. Everything is written to stdout (so run java -jar burpsuite.jar) and look for error messages/problems there.
 
-## Todo
+## To do
 This plugin is at a somewhat primitive state, and there are many things left to be done, like:
 * Supporting more compression algorithms (maybe with auto-detection)
 * Better support for Burp’s Scanner 
