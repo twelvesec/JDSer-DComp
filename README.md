@@ -28,7 +28,7 @@ Finally, create a "libs/" directory next to your burp.jar and put all the jars i
 
 2) Start Burp plugin
 
-Download from [here]() and simply load it in the Extender tab, the Output window will list all the loaded jars from ./libs/
+Download from [here](https://github.com/twelvesec/JDSer-DComp/raw/master/Executables/JDSer-DComp.jar) and simply load it in the Extender tab, the Output window will list all the loaded jars from ./libs/
 
 3) Inspect serialized Java traffic
 
