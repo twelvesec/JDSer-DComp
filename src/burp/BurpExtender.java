@@ -25,13 +25,15 @@ import twelvesec.TSUtils;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.Component;
 
-public class BurpExtender implements IBurpExtender, IMessageEditorTabFactory, IContextMenuFactory {
+public class BurpExtender implements IBurpExtender, IMessageEditorTabFactory, IContextMenuFactory, ITab {
 
 
 	private static final String LIB_DIR = System.getProperty("user.dir") + "/libs/";
     private IBurpExtenderCallbacks callbacks;
     private IExtensionHelpers helpers;
+    private JPanel mainPanel;
 
     //
     // implement IBurpExtender
@@ -58,7 +60,24 @@ public class BurpExtender implements IBurpExtender, IMessageEditorTabFactory, IC
 
         callbacks.registerHttpListener(new JDHttpListener(this.helpers));
 
+        mainPanel = new JPanel();
+        callbacks.customizeUiComponent(mainPanel);
+
+        callbacks.addSuiteTab(this);
+
         TSUtils.refreshSharedClassLoader();
+    }
+
+    @Override
+    public String getTabCaption()
+    {
+        return "JDSer-DComp";
+    }
+
+    @Override
+    public Component getUiComponent()
+    {
+        return this.mainPanel;
     }
 
     //

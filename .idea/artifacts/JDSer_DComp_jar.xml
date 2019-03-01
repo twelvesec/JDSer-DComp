@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="JDSer-DComp:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/JDSer_DComp_jar</output-path>
+    <root id="archive" name="JDSer-DComp.jar">
+      <element id="module-output" name="JDSer-DComp" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/xstream-1.4.4.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

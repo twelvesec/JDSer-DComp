@@ -49,53 +49,8 @@ public class TSUtils {
 	private static byte[] crap;
 	private static XStream xstream = new XStream(new DomDriver());
 	private static Object obj;
-	private static final String LIB_DIR = System.getProperty("user.dir") + "/libs/";
-	public static String SERIALIZEHEADER = "Via:SERIALIZED-GOODNESS";
-		
-	public static byte[] toXML(byte[] message, IExtensionHelpers helpers) throws IOException, ClassNotFoundException, DataFormatException
-    {        
-		// split compressed message body from headers
-        IRequestInfo requestInfo = helpers.analyzeRequest(message);
-        //List<String> headers = requestInfo.getHeaders();
-        int msgBodyOffset = requestInfo.getBodyOffset();
-        byte[] messageBody = Arrays.copyOfRange(message, msgBodyOffset, message.length);
-        
-        //TODO	
-        //Check MIME type for serialized java
-        //if(headers.contains("application/x-java-serialized-object"))
-        
-    	// Decompress to serialized data from ZLIB format.
-		byte[] decompressedBody = decompressByteArray(messageBody);		
-		
-		// Deserialize to XML from serialized JAVA
-		CustomLoaderObjectInputStream is = null;
-        int magicPos = helpers.indexOf(decompressedBody, serializeMagic, false, 0, decompressedBody.length);
-        
-        // get serialized data
-        byte[] baSer = Arrays.copyOfRange(decompressedBody, magicPos, decompressedBody.length);
-
-        // save the crap buffer for reconstruction
-        // "crap" are all the bytes at the start of the message body, before serialized Java begins
-        crap = Arrays.copyOfRange(message, msgBodyOffset, msgBodyOffset+magicPos);
-
-        // deserialize the object
-        ByteArrayInputStream bais = new ByteArrayInputStream(baSer);        
-
-
-        // Use a custom OIS that uses our own ClassLoader
-        is = new CustomLoaderObjectInputStream(bais, TSUtils.getSharedClassLoader());
-        obj = is.readObject();
-        String xml = xstream.toXML(obj);
-
-        try {
-            is.close();
-        } catch (Exception ex) {
-                System.out.println("Error deserializing from Java object to XML  " + ex.getMessage());
-        }
-
-        return xml.getBytes();					
-        
-    }
+	private static final String LIB_DIR = System.getProperty("user.dir") + File.separator +  "libs" + File.separator;
+	public static String SerializeHeader = "Via:SERIALIZED-GOODNESS";
 	
 	 public static byte[] fromXML(byte[] original, IExtensionHelpers helpers){
 		 
@@ -134,7 +89,97 @@ public class TSUtils {
         return compressedBody;         		 		 
 		 
 	 }
-	
+
+    public static byte[] toXML(byte[] message, IExtensionHelpers helpers) throws IOException, ClassNotFoundException, DataFormatException
+    {
+        // split compressed message body from headers
+        IRequestInfo requestInfo = helpers.analyzeRequest(message);
+        //List<String> headers = requestInfo.getHeaders();
+        int msgBodyOffset = requestInfo.getBodyOffset();
+        byte[] messageBody = Arrays.copyOfRange(message, msgBodyOffset, message.length);
+
+        //TODO
+        //Check MIME type for serialized java
+        //if(headers.contains("application/x-java-serialized-object"))
+
+        // Decompress to serialized data from ZLIB format.
+        byte[] decompressedBody = decompressByteArray(messageBody);
+
+        // Deserialize to XML from serialized JAVA
+        CustomLoaderObjectInputStream is = null;
+        int magicPos = helpers.indexOf(decompressedBody, serializeMagic, false, 0, decompressedBody.length);
+
+        // get serialized data
+        byte[] baSer = Arrays.copyOfRange(decompressedBody, magicPos, decompressedBody.length);
+
+        // save the crap buffer for reconstruction
+        // "crap" are all the bytes at the start of the message body, before serialized Java begins
+        crap = Arrays.copyOfRange(message, msgBodyOffset, msgBodyOffset+magicPos);
+
+        // deserialize the object
+        ByteArrayInputStream bais = new ByteArrayInputStream(baSer);
+
+
+        // Use a custom OIS that uses our own ClassLoader
+        is = new CustomLoaderObjectInputStream(bais, TSUtils.getSharedClassLoader());
+        obj = is.readObject();
+        String xml = xstream.toXML(obj);
+
+        try {
+            is.close();
+        } catch (Exception ex) {
+            System.out.println("Error deserializing from Java object to XML  " + ex.getMessage());
+        }
+
+        return xml.getBytes();
+
+    }
+
+    public static ClassLoader getSharedClassLoader()
+    {
+        if(loader == null) {
+            refreshSharedClassLoader();
+        }
+        return loader;
+    }
+
+    protected static ClassLoader createURLClassLoader(String libDir)
+    {
+        File dependencyDirectory = new File(libDir);
+        File[] files = dependencyDirectory.listFiles();
+        ArrayList<URL> urls = new ArrayList<>();
+
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].getName().endsWith(".jar")) {
+                try {
+                    System.out.println("Loading: " + files[i].getName());
+                    urls.add(files[i].toURI().toURL());
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(BurpExtender.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("!! Error loading: " + files[i].getName());
+                }
+            }
+        }
+        return new URLClassLoader(urls.toArray(new URL[urls.size()]));
+    }
+
+    public static void refreshSharedClassLoader()
+    {
+        loader = createURLClassLoader(LIB_DIR);
+    }
+
+    public static boolean isJD(byte[] content, IExtensionHelpers helpers)
+    {
+        return true;
+        //TODO
+        //return helpers.indexOf(content, TSUtils.serializeMagic, false, 0, content.length) > -1;
+    }
+
+    public static boolean hasMagicHeader(byte[] content, IExtensionHelpers helpers)
+    {
+        return helpers.indexOf(content, helpers.stringToBytes(TSUtils.SerializeHeader), false, 0, content.length) > -1;
+    }
+
 	public static byte[] decompressByteArray(byte[] messageBody) throws DataFormatException {
 		byte[] result = new byte[1000000];
 		
@@ -160,50 +205,4 @@ public class TSUtils {
 
 		return compressedMessageInt;
 	}
-	
-	public static ClassLoader getSharedClassLoader()
-    {
-        if(loader == null) {
-            refreshSharedClassLoader();
-        }
-        return loader;
-    }
-	
-	public static void refreshSharedClassLoader()
-    {
-        loader = createURLClassLoader(LIB_DIR);
-    }
-	
-	protected static ClassLoader createURLClassLoader(String libDir)
-    {
-        File dependencyDirectory = new File(libDir);
-        File[] files = dependencyDirectory.listFiles();
-        ArrayList<URL> urls = new ArrayList<>();
-
-        for (int i = 0; i < files.length; i++) {
-            if (files[i].getName().endsWith(".jar")) {
-                try {
-                    System.out.println("Loading: " + files[i].getName());
-                    urls.add(files[i].toURI().toURL());
-                } catch (MalformedURLException ex) {
-                    Logger.getLogger(BurpExtender.class.getName()).log(Level.SEVERE, null, ex);
-                    System.out.println("!! Error loading: " + files[i].getName());
-                }
-            }
-        }
-        return new URLClassLoader(urls.toArray(new URL[urls.size()]));
-    }
-	
-	public static boolean isJD(byte[] content, IExtensionHelpers helpers)
-    {
-		return true;
-		//TODO
-        //return helpers.indexOf(content, TSUtils.serializeMagic, false, 0, content.length) > -1;
-    }
-
-	public static boolean hasMagicHeader(byte[] content, IExtensionHelpers helpers)
-    {
-        return helpers.indexOf(content, helpers.stringToBytes(TSUtils.SERIALIZEHEADER), false, 0, content.length) > -1;
-    }
-	
 }

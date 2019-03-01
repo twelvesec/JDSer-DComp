@@ -38,6 +38,14 @@ Please note that if you mess up the XML schema or edit an object in a funny way,
 
 JARs reload when the extender is loaded. Everything is written to stdout (so run java -jar burpsuite.jar) and look for error messages/problems there.
 
+## Debug
+
+* Attach debugger to Burp's Java Process (Windows 10)
+
+```
+"C:\Program Files\Java\jdk1.8.0_162\bin\java.exe" -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:5005 -jar "C:\Program Files\BurpSuitePro\burpsuite_pro.jar"
+```
+
 ## To do
 
 This plugin is at a somewhat primitive state, and there are many things left to be done, like:

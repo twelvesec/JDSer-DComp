@@ -44,7 +44,7 @@ public class JDHttpListener implements IHttpListener {
 
                 //if the request has the custom header, remove it
                 List<String> headers = helpers.analyzeRequest(messageInfo.getRequest()).getHeaders();
-                headers.remove(TSUtils.SERIALIZEHEADER);
+                headers.remove(TSUtils.SerializeHeader);
 
                 //extract the body
                 int bodyOffset = helpers.analyzeRequest(messageInfo.getRequest()).getBodyOffset();

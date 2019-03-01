@@ -74,7 +74,7 @@ public class JDMenu implements IContextMenuFactory {
 
                         //add the magic header so we know to reserialize before sending out
                         List<String> headers = helpers.analyzeRequest(iReqResp.getRequest()).getHeaders();
-                        headers.add(TSUtils.SERIALIZEHEADER);
+                        headers.add(TSUtils.SerializeHeader);
 
                         //replace the existing body with the XML and send to intruder
                         callbacks.sendToIntruder(httpService.getHost(), httpService.getPort(), (httpService.getProtocol().equals("https") ? true : false),
