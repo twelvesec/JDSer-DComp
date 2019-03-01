@@ -22,15 +22,16 @@ import javax.swing.*;
 
 import twelvesec.TSUtils;
 
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.Component;
 
 public class BurpExtender implements IBurpExtender, IMessageEditorTabFactory, IContextMenuFactory, ITab {
 
-
-	private static final String LIB_DIR = System.getProperty("user.dir") + "/libs/";
+	public static String LIB_DIR;
     private IBurpExtenderCallbacks callbacks;
     private IExtensionHelpers helpers;
     private JPanel mainPanel;
@@ -60,7 +61,35 @@ public class BurpExtender implements IBurpExtender, IMessageEditorTabFactory, IC
 
         callbacks.registerHttpListener(new JDHttpListener(this.helpers));
 
-        mainPanel = new JPanel();
+        //main panel
+        mainPanel = new JPanel(new FlowLayout(0, 10, 10));
+
+        JLabel pathLbl = new JLabel("Libs Path:");
+        JTextField pathTxt = new JTextField();
+        JButton saveBtn = new JButton("Save");
+
+        BurpExtender.LIB_DIR = callbacks.loadExtensionSetting("LIBS_PATH");
+        pathTxt.setText(BurpExtender.LIB_DIR);
+
+        pathTxt.setPreferredSize(new Dimension(400, 25));
+        saveBtn.setPreferredSize(new Dimension(120, 25));
+
+        saveBtn.addActionListener(e -> {
+            if(!pathTxt.getText().isEmpty() && Files.isDirectory(Paths.get(pathTxt.getText()))) {
+                callbacks.saveExtensionSetting("LIBS_PATH", pathTxt.getText());
+                BurpExtender.LIB_DIR = pathTxt.getText();
+            }
+            else{
+                JOptionPane.showMessageDialog(mainPanel, "The directory path is not valid", "Libraries directory", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        mainPanel.add(pathLbl);
+        mainPanel.add(pathTxt);
+        mainPanel.add(saveBtn);
+
+        /////////////////////////////////
+
         callbacks.customizeUiComponent(mainPanel);
 
         callbacks.addSuiteTab(this);

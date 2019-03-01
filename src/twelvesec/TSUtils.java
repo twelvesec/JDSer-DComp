@@ -17,17 +17,12 @@
 
 package twelvesec;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
@@ -43,35 +38,34 @@ import burp.IExtensionHelpers;
 import burp.IRequestInfo;
 
 public class TSUtils {
-	
-	public static byte[] serializeMagic = new byte[]{-84, -19};
-	protected static ClassLoader loader;
-	private static byte[] crap;
-	private static XStream xstream = new XStream(new DomDriver());
-	private static Object obj;
-	private static final String LIB_DIR = System.getProperty("user.dir") + File.separator +  "libs" + File.separator;
-	public static String SerializeHeader = "Via:SERIALIZED-GOODNESS";
-	
-	 public static byte[] fromXML(byte[] original, IExtensionHelpers helpers){
-		 
-		 // xstream doesn't like newlines
-		 String xml = helpers.bytesToString(original).replace("\n", "");
-		 
-		 // reserialize the data
-		 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		 
-         try {
-	         try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-	             xstream.setClassLoader(getSharedClassLoader()); //bugfix JM 2015/03/24
-	             oos.writeObject(xstream.fromXML(xml));
-	             oos.flush();
-	         }
 
-         } catch (Exception ex) {
-        	 System.out.println("Error deserializing from XML to Java object " + ex.getMessage());
-         }
-		 
-        byte[] baObj = baos.toByteArray();        
+    public static byte[] serializeMagic = new byte[]{-84, -19};
+    protected static ClassLoader loader;
+    private static byte[] crap;
+    private static XStream xstream = new XStream(new DomDriver());
+    private static Object obj;
+    public static String SerializeHeader = "Via:SERIALIZED-GOODNESS";
+
+    public static byte[] fromXML(byte[] original, IExtensionHelpers helpers) {
+
+        // xstream doesn't like newlines
+        String xml = helpers.bytesToString(original).replace("\n", "");
+
+        // reserialize the data
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        try {
+            try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+                xstream.setClassLoader(getSharedClassLoader()); //bugfix JM 2015/03/24
+                oos.writeObject(xstream.fromXML(xml));
+                oos.flush();
+            }
+
+        } catch (Exception ex) {
+            System.out.println("Error deserializing from XML to Java object " + ex.getMessage());
+        }
+
+        byte[] baObj = baos.toByteArray();
 
         if (crap != null) //comes from a request, not a previously clicked tab
         {
@@ -84,14 +78,12 @@ public class TSUtils {
 
         // Compress to ZLIB format
         byte[] compressedBody = compressByteArray(baObj);
-        
-        
-        return compressedBody;         		 		 
-		 
-	 }
 
-    public static byte[] toXML(byte[] message, IExtensionHelpers helpers) throws IOException, ClassNotFoundException, DataFormatException
-    {
+        return compressedBody;
+
+    }
+
+    public static byte[] toXML(byte[] message, IExtensionHelpers helpers) throws IOException, ClassNotFoundException, DataFormatException {
         // split compressed message body from headers
         IRequestInfo requestInfo = helpers.analyzeRequest(message);
         //List<String> headers = requestInfo.getHeaders();
@@ -114,7 +106,7 @@ public class TSUtils {
 
         // save the crap buffer for reconstruction
         // "crap" are all the bytes at the start of the message body, before serialized Java begins
-        crap = Arrays.copyOfRange(message, msgBodyOffset, msgBodyOffset+magicPos);
+        crap = Arrays.copyOfRange(message, msgBodyOffset, msgBodyOffset + magicPos);
 
         // deserialize the object
         ByteArrayInputStream bais = new ByteArrayInputStream(baSer);
@@ -135,74 +127,71 @@ public class TSUtils {
 
     }
 
-    public static ClassLoader getSharedClassLoader()
-    {
-        if(loader == null) {
+    public static ClassLoader getSharedClassLoader() {
+        if (loader == null) {
             refreshSharedClassLoader();
         }
         return loader;
     }
 
-    protected static ClassLoader createURLClassLoader(String libDir)
-    {
+    protected static ClassLoader createURLClassLoader(String libDir) {
         File dependencyDirectory = new File(libDir);
-        File[] files = dependencyDirectory.listFiles();
+        File[] files = dependencyDirectory.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".jar");
+            }
+        });
         ArrayList<URL> urls = new ArrayList<>();
 
         for (int i = 0; i < files.length; i++) {
-            if (files[i].getName().endsWith(".jar")) {
-                try {
-                    System.out.println("Loading: " + files[i].getName());
-                    urls.add(files[i].toURI().toURL());
-                } catch (MalformedURLException ex) {
-                    Logger.getLogger(BurpExtender.class.getName()).log(Level.SEVERE, null, ex);
-                    System.out.println("!! Error loading: " + files[i].getName());
-                }
+            try {
+                System.out.println("Loading: " + files[i].getName());
+                urls.add(files[i].toURI().toURL());
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(BurpExtender.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("!! Error loading: " + files[i].getName());
             }
         }
         return new URLClassLoader(urls.toArray(new URL[urls.size()]));
     }
 
-    public static void refreshSharedClassLoader()
-    {
-        loader = createURLClassLoader(LIB_DIR);
+    public static void refreshSharedClassLoader() {
+        loader = createURLClassLoader(BurpExtender.LIB_DIR);
     }
 
-    public static boolean isJD(byte[] content, IExtensionHelpers helpers)
-    {
+    public static boolean isJD(byte[] content, IExtensionHelpers helpers) {
         return true;
         //TODO
         //return helpers.indexOf(content, TSUtils.serializeMagic, false, 0, content.length) > -1;
     }
 
-    public static boolean hasMagicHeader(byte[] content, IExtensionHelpers helpers)
-    {
+    public static boolean hasMagicHeader(byte[] content, IExtensionHelpers helpers) {
         return helpers.indexOf(content, helpers.stringToBytes(TSUtils.SerializeHeader), false, 0, content.length) > -1;
     }
 
-	public static byte[] decompressByteArray(byte[] messageBody) throws DataFormatException {
-		byte[] result = new byte[1000000];
-		
-		// Decompress the bytes
-		Inflater inflater = new Inflater();		
-		inflater.setInput(messageBody, 0, messageBody.length);
-		int resultLength = inflater.inflate(result);
-		inflater.end();
-		
-		return Arrays.copyOfRange(result, 0, resultLength);
-		
-	}
-	
-	public static byte[] compressByteArray(byte[] messageBody) {
-		// Compress the bytes
-		byte[] outputInt = new byte[1000000];
-		Deflater compresserInt = new Deflater(1);
-		compresserInt.setInput(messageBody);
-		compresserInt.finish();
-		int compressedDataLengthInt = compresserInt.deflate(outputInt);
-		compresserInt.end();
-		byte[] compressedMessageInt = Arrays.copyOfRange(outputInt, 0, compressedDataLengthInt);
+    public static byte[] decompressByteArray(byte[] messageBody) throws DataFormatException {
+        byte[] result = new byte[1000000];
 
-		return compressedMessageInt;
-	}
+        // Decompress the bytes
+        Inflater inflater = new Inflater();
+        inflater.setInput(messageBody, 0, messageBody.length);
+        int resultLength = inflater.inflate(result);
+        inflater.end();
+
+        return Arrays.copyOfRange(result, 0, resultLength);
+
+    }
+
+    public static byte[] compressByteArray(byte[] messageBody) {
+        // Compress the bytes
+        byte[] outputInt = new byte[1000000];
+        Deflater compresserInt = new Deflater(1);
+        compresserInt.setInput(messageBody);
+        compresserInt.finish();
+        int compressedDataLengthInt = compresserInt.deflate(outputInt);
+        compresserInt.end();
+        byte[] compressedMessageInt = Arrays.copyOfRange(outputInt, 0, compressedDataLengthInt);
+
+        return compressedMessageInt;
+    }
 }
